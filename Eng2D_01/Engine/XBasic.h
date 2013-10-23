@@ -1,13 +1,18 @@
 #pragma once
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-
 #include <assert.h>
 #include <windows.h>
+#include <new>
 
-#define XASSERT	assert
+#define XASSERT		assert
+#define XFORCEINL	__forceinline
+#define XNOINL		__declspec(noinline)
+
+#define FASTCALL	__fastcall
+#define STDCALL		__stdcall
+
+#define XZEROOBJECT(ptr) ::memset(ptr, 0, sizeof(*ptr))
+
 
 typedef unsigned char uchar, byte;
 typedef unsigned short ushort;
@@ -16,6 +21,7 @@ typedef unsigned long ulong;
 typedef unsigned long long ulonglong;
 typedef size_t uintptr;
 typedef wchar_t wchar;
+typedef void* handle;
 
 namespace X
 {
@@ -24,5 +30,5 @@ namespace X
 		return (n + (align - 1)) & ~(align - 1);
 	}
 
-	template < typename T> T Max(T a, T b) { return a > b ? a : b; }
+	template < typename Type> Type Max(Type a, Type b) { return a > b ? a : b; }
 };

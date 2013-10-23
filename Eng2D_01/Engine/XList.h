@@ -5,21 +5,22 @@
 
 namespace X
 {
-	template < typename T> class ForwardList
+	//////////////////////////////////////////////////////////////////////////ForwardList
+	template < typename Type, GenericAllocator& Allocator = GGenericAllocator> class ForwardList
 	{
 
 	public:
 		class Node
 		{
 			friend class ForwardList;
-			Node(const T& value) : m_next(nullptr), m_value(value) {}
+			Node(const Type& value) : m_next(nullptr), m_value(value) {}
 			Node* 	m_next;
 		public:
-			T		m_value;
+			Type		m_value;
 			Node* next() const { return m_next; }
 
-			inline void* operator new (size_t x)  { return gGenericAllocator.alloc(x);	}
-			inline void operator delete (void* x) { gGenericAllocator.free(x);			}
+			inline void* operator new (size_t x)  { return Allocator.alloc(x);	}
+			inline void operator delete (void* x) { Allocator.free(x);			}
 		};
 
 	private:
@@ -87,14 +88,14 @@ namespace X
 			m_nodeHead = 0;
 			m_pLastNode = (Node*)&m_nodeHead;
 		}
-		Node* push(const T& value)
+		Node* push(const Type& value)
 		{
 			Node* newNode = new Node(value);
 			m_pLastNode->m_next = newNode;
 			m_pLastNode = newNode;
 			return newNode;
 		}
-		bool deleteNode(Node* node)
+		bln deleteNode(Node* node)
 		{
 			if(node == nullptr) return false;
 
@@ -130,22 +131,26 @@ namespace X
 
 
 
+
+
+
+
 	//////////////////////////////////////////////////////////////////////////ForwardList, Thread Safe
-	template < typename T> class ForwardListTS
+	template < typename Type> class ForwardListTS
 	{
 
 	public:
 		class Node
 		{
 			friend class ForwardListTS;
-			Node(const T& value) : m_next(nullptr), m_value(value) {}
+			Node(const Type& value) : m_next(nullptr), m_value(value) {}
 			Node* 	m_next;
 		public:
-			T		m_value;
+			Type		m_value;
 			Node* next() const { return m_next; }
 
-			inline void* operator new (size_t x)  { return gGenericAllocator.alloc(x);	}
-			inline void operator delete (void* x) { gGenericAllocator.free(x);			}
+			inline void* operator new (size_t x)  { return GGenericAllocator.alloc(x);	}
+			inline void operator delete (void* x) { GGenericAllocator.free(x);			}
 		};
 
 	private:
@@ -190,51 +195,78 @@ namespace X
 			return *this;
 		}
 
+		Node*	firstNode() const	{ return (Node*)m_nodeHead;	}
 
-		Node*	firstNode() const		{ return (Node*)m_nodeHead;	}
-		uint	nodeCount() const
+		Node*	push(const Type& value)		{ return (Node*)_FuncMain(0, (uintptr)&value);	}
+		uint	nodeCount() const			{ return (uint)_FuncMain(2, 0);					}
+		bln		deleteNode(Node* node)		{ return (bln)_FuncMain(3, (uintptr)node);		}
+		void	clear()						{ _FuncMain(4,0);								}		
+		Node* operator [] (size_t i) const	{ return (Node*)_FuncMain(1, (uintptr)i);		}
+
+		
+
+		
+
+
+
+	private:
+		XNOINL uintptr FASTCALL _FuncMain(uintptr i, uintptr data) const
 		{
-			uint n = 0;
-			Node* iter = firstNode();
+			typedef ForwardListTS<Type> Class;
+			typedef uintptr (Class::*MemFunc)(uintptr);
+			static const MemFunc lFuncs[] = { &Class::_Push, &Class::_GetNode, &Class::_NodeCount, &Class::_DeleteNode, &Class::_Clear};
+
 			m_tac.lock();
+			uintptr ret = (((Class*)this)->*(lFuncs[i]))(data);
+			m_tac.unlock();
+			return ret;
+		}
+		
+		uintptr _Push(uintptr valuePtr)
+		{
+			Node* newNode = new Node(*((Type*)valuePtr));
+			m_pLastNode->m_next = newNode;
+			m_pLastNode = newNode;
+			return (uintptr)newNode;
+		}
+		uintptr _NodeCount(uintptr unused)
+		{
+			uintptr n = 0;
+			Node* iter = firstNode();
 			while(iter)
 			{
 				iter = iter->next();
 				n++;
 			}
-			m_tac.unlock();
 			return n;
 		}
-
-		void clear()
+		uintptr _GetNode(uintptr index)
 		{
-			m_tac.lock();
+			Node* iter = firstNode();
+			while (((uintptr)iter) * index)
+			{
+				iter = iter->next();
+				index--;
+			}
+			return (uintptr)iter;
+		}
+		uintptr _Clear(uintptr unused)
+		{
 			Node* iter = firstNode();
 			m_nodeHead = 0;
 			m_pLastNode = (Node*)&m_nodeHead;
-			m_tac.unlock();
-
 			while (iter)
 			{
 				Node* tmp = iter;
 				iter = iter->next();
 				delete tmp;
 			}
-			
+			return 0;
 		}
-		Node* push(const T& value)
+		uintptr _DeleteNode(uintptr nodePtr)
 		{
-			m_tac.lock();
-			Node* newNode = new Node(value);
-			m_pLastNode->m_next = newNode;
-			m_pLastNode = newNode;
-			m_tac.unlock();
-			return newNode;
-		}
-		bool deleteNode(Node* node)
-		{
-			if(node == nullptr) return false;
-			m_tac.lock();
+			const Node* node = (Node*)nodePtr;
+			if(node == nullptr) return 0;
 			Node* iter = (Node*)m_nodeHead;
 			Node* iterPre = (Node*)&m_nodeHead;
 			while (iter)
@@ -245,26 +277,13 @@ namespace X
 						m_pLastNode = iterPre;
 					iterPre->m_next = iter->m_next;
 					delete iter;
-					return true;
+					return 1;
 				}
 
 				iterPre = iter;
 				iter = iter->next();
 			}
-			m_tac.unlock();
-			return false;
-		}
-		Node* operator [] (size_t i) const
-		{
-			m_tac.lock();
-			Node* iter = firstNode();
-			while (((uintptr)iter) * i)
-			{
-				iter = iter->next();
-				i--;
-			}
-			m_tac.unlock();
-			return iter;
+			return 0;
 		}
 	};
 }

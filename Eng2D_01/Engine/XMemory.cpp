@@ -2,8 +2,8 @@
 
 namespace X
 {
-	TempAllocator		gTempAllocator;
-	GenericAllocator	gGenericAllocator;
+	TempAllocator		GTempAllocator;
+	GenericAllocator	GGenericAllocator;
 
 	//////////////////////////////////////////////////////////////////////////TempAllocator
 	void TempAllocator::init( size_t buffSize )
@@ -24,21 +24,25 @@ namespace X
 	void* TempAllocator::alloc( size_t size )
 	{
 		m_tac.lock();
+		m_exec = true;
 		byte* ret = m_bufferSeek;
 		m_bufferSeek += size;
 		if(m_bufferSeek < m_bufferEnd) 
 		{
+			m_exec = false;
 			m_tac.unlock();
 			return ret;
 		}
 		ret = m_bufferBegin;
 		m_bufferSeek = ret + size;
+		m_exec = false;
 		m_tac.unlock();
 		return ret;
 	}
 
 	void* TempAllocator::alloc( size_t size, size_t align )
 	{
+		
 		m_tac.lock();
 		m_bufferSeek = (byte*)NearAlign((size_t)m_bufferSeek, align);
 		byte* ret = m_bufferSeek;
