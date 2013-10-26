@@ -1,76 +1,17 @@
 #include "XGameWindow.h"
 #include "XEngineThreads.h"
+#include "XInput.h"
 
 #include <GL\glew.h>
 #include <GL\wglew.h>
+#include <iostream>
 
 namespace X
 {
 	GameWindow GGameWindow;
 
-	LRESULT WINAPI MainWNDProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
-	{
-		switch(msg)
-		{
 
-		case WM_CREATE:
-			break;
-
-		case WM_SIZE:
-			// 			gGame_WinHeight = HIWORD(lparam);
-			// 			gGame_WinWidth = LOWORD(lparam);
-			// 			glViewport(0, 0, gGame_WinWidth, gGame_WinHeight);
-			break;
-
-		case WM_KEYDOWN:
-			// 			gGame_CurKeyStates[wparam] = true;
-			break;
-
-		case WM_KEYUP:
-			// 			gGame_CurKeyStates[wparam] = false;
-			break;
-
-		case WM_LBUTTONDOWN:
-			// 			gGame_CurMouseStates[0] = true;
-			break;
-
-		case WM_LBUTTONUP:
-			// 			gGame_CurMouseStates[0] = false;
-			break;
-
-		case WM_RBUTTONDOWN:
-			// 			gGame_CurMouseStates[1] = true;
-			break;
-
-		case WM_RBUTTONUP:
-			// 			gGame_CurMouseStates[1] = false;
-			break;
-
-		case WM_MBUTTONDOWN:
-			// 			gGame_CurMouseStates[2] = true;
-			break;
-
-		case WM_MBUTTONUP:
-			// 			gGame_CurMouseStates[2] = false;
-			break;
-
-		case WM_MOUSEMOVE:
-			{
-				// 				XVec2i newPos(HIWORD(lparam), HIWORD(lparam));
-				// 				gGame_MouseVelocity = newPos - gGame_MousePos;
-				// 				gGame_MousePos = newPos;
-			}
-			break;
-
-		case WM_CLOSE:
-		case WM_QUIT:
-		case WM_DESTROY:
-			//GAppRuning = false;
-			break;
-		}
-
-		return DefWindowProc(hwnd, msg, wparam, lparam);
-	}
+	extern volatile Atomic GAppRuning;
 
 
 
@@ -87,7 +28,7 @@ namespace X
 		wndc.hIcon					= LoadIcon(NULL, IDI_APPLICATION);
 		wndc.hIconSm				= LoadIcon(NULL, IDI_APPLICATION);
 		wndc.hInstance				= GetModuleHandle(NULL);
-		wndc.lpfnWndProc			= MainWNDProc;
+		wndc.lpfnWndProc			= GameWindow::WNDProc;
 		wndc.lpszClassName			= title;
 		wndc.lpszMenuName			= NULL;
 		wndc.style					= CS_HREDRAW | CS_VREDRAW;
@@ -150,6 +91,10 @@ namespace X
 		wglDeleteContext(tempContext);
 		wglMakeCurrent(m_HDC, m_HGLRC);
 		wglSwapIntervalEXT(0);
+
+		printf("GL Version %s\n", ::glGetString(GL_VERSION));
+		printf("GLSL Version %s\n", ::glGetString(GL_SHADING_LANGUAGE_VERSION));
+
 	}
 
 	void GameWindow::show()
@@ -164,6 +109,68 @@ namespace X
 	void GameWindow::destroy()
 	{
 
+	}
+
+	LRESULT WINAPI GameWindow::WNDProc( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam )
+	{
+		switch(msg)
+		{
+
+		case WM_CREATE:
+			break;
+
+		case WM_SIZE:
+			GGameWindow.m_width = HIWORD(lparam);
+			GGameWindow.m_hegiht = LOWORD(lparam);
+			break;
+
+		case WM_KEYDOWN:
+			GInput.m_curState.keys[wparam] = true;
+			break;
+
+		case WM_KEYUP:
+			GInput.m_curState.keys[wparam] = false;
+			break;
+
+		case WM_LBUTTONDOWN:
+			GInput.m_curState.mouseButtons[0] = true;
+			break;
+
+		case WM_LBUTTONUP:
+			GInput.m_curState.mouseButtons[0] = false;
+			break;
+
+		case WM_RBUTTONDOWN:
+			GInput.m_curState.mouseButtons[1] = true;
+			break;
+
+		case WM_RBUTTONUP:
+			GInput.m_curState.mouseButtons[1] = false;
+			break;
+
+		case WM_MBUTTONDOWN:
+			GInput.m_curState.mouseButtons[2] = true;
+			break;
+
+		case WM_MBUTTONUP:
+			GInput.m_curState.mouseButtons[2] = false;
+			break;
+
+		case WM_MOUSEMOVE:
+			{
+				GInput.m_curState.mouseX = LOWORD(lparam);
+				GInput.m_curState.mouseY = HIWORD(lparam);
+			}
+			break;
+
+		case WM_CLOSE:
+		case WM_QUIT:
+		case WM_DESTROY:
+				GAppRuning = false;
+			break;
+		}
+
+		return DefWindowProc(hwnd, msg, wparam, lparam);
 	}
 
 };

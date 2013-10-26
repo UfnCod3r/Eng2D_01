@@ -59,8 +59,22 @@ namespace X
 
 	//////////////////////////////////////////////////////////////////////////Atomic
 	typedef long Atomic;
-	inline Atomic Atomic_Inc(Atomic* a)					{ return ::InterlockedIncrement(a); }
-	inline Atomic Atomic_Dec(Atomic* a)					{ return ::InterlockedDecrement(a); }
-	inline Atomic Atomic_Set(Atomic* a, long value)		{ ::InterlockedExchange(a, value); return value; }
+	inline Atomic Atomic_Inc(volatile Atomic* a)				{ return ::InterlockedIncrement(a); }
+	inline Atomic Atomic_Dec(volatile Atomic* a)				{ return ::InterlockedDecrement(a); }
+	inline Atomic Atomic_Set(volatile Atomic* a, long value)	{ ::InterlockedExchange(a, value); return value; }
 
+	inline void ThisThread_Sleep(uint milliseconds) { ::Sleep(milliseconds); }
+	inline uint ThisThread_ID() { return ::GetCurrentThreadId(); }
+
+
+	class  WaitEvent
+	{
+		HANDLE	m_handle;
+	public:
+		void init()					{ m_handle = ::CreateEvent(nullptr, true, true, nullptr); }
+		void release()				{ ::CloseHandle(m_handle);	}
+		void waiting()				{ ::WaitForSingleObject(m_handle, INFINITE); }
+		void setWaitable()			{ ::ResetEvent(m_handle);	}
+		void breakWaits()			{ ::SetEvent(m_handle); }
+	};
 };

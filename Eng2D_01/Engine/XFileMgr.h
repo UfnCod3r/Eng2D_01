@@ -12,6 +12,7 @@ namespace X
 		char	name[MAX_FILE_NAME];
 	};
 
+
 	//////////////////////////////////////////////////////////////////////////FileManager
 	class FileManager
 	{
@@ -25,8 +26,12 @@ namespace X
 		bln fileDelete(const char* filename);
 		bln fileGetSize(const char* fileName, uint& outSize);
 
+
 		uint findFile(const char* pattern, FileInfo* outFiles);
 
+		void finFileStart(char* patern);
+		bln  findFile(FileInfo* outResult);
 	};
+
 	extern FileManager GFileManager;
 };

@@ -64,19 +64,28 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>glew32.lib;opengl32.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32.lib;opengl32.lib;glu32.lib;FreeImage.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="XBasic.cpp" />
     <ClCompile Include="XConsole.cpp" />
     <ClCompile Include="XEngineThreads.cpp" />
     <ClCompile Include="XFileMgr.cpp" />
     <ClCompile Include="XGameWindow.cpp" />
+    <ClCompile Include="XGLCommandQueue.cpp" />
+    <ClCompile Include="XGLMisc.cpp" />
     <ClCompile Include="XInput.cpp" />
+    <ClCompile Include="XMath.cpp" />
     <ClCompile Include="XMemory.cpp" />
     <ClCompile Include="XName.cpp" />
+    <ClCompile Include="XRenderer.cpp" />
+    <ClCompile Include="XRenderer_Shader.cpp" />
+    <ClCompile Include="XResourceMgr.cpp" />
+    <ClCompile Include="XShader.cpp" />
     <ClCompile Include="XString.cpp" />
+    <ClCompile Include="XTexture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="XArray.h" />
@@ -85,8 +94,14 @@
     <ClInclude Include="XEngineThreads.h" />
     <ClInclude Include="XGame.h" />
     <ClInclude Include="XGameWindow.h" />
+    <ClInclude Include="XGLCommandQueue.h" />
+    <ClInclude Include="XGLMisc.h" />
     <ClInclude Include="XInput.h" />
+    <ClInclude Include="XRenderer.h" />
+    <ClInclude Include="XResourceMgr.h" />
+    <ClInclude Include="XShader.h" />
     <ClInclude Include="XString.h" />
+    <ClInclude Include="XTexture.h" />
     <ClInclude Include="XThreading.h" />
     <ClInclude Include="XFileMgr.h" />
     <ClInclude Include="XList.h" />

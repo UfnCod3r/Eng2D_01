@@ -92,12 +92,13 @@ namespace X
 		do 
 		{
 			outFiles[nFile].size = findData.nFileSizeLow;
-			StrCopy(outFiles[nFile].name, findData.cFileName);
+			StrCopy(findData.cFileName, outFiles[nFile].name);
 			nFile++;
 		} 
 		while (::FindNextFileA(hFind, &findData));
 		::FindClose(hFind);
 		return nFile;
 	}
+
 
 };

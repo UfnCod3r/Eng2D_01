@@ -10,6 +10,9 @@ namespace X
 		HWND	m_HWND;
 		HDC		m_HDC;
 		HGLRC	m_HGLRC;
+		uint	m_width, m_hegiht;
+
+		static LRESULT WINAPI WNDProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
 	public:
 		GameWindow() : m_HWND(nullptr), m_HDC(nullptr), m_HGLRC(nullptr) {}

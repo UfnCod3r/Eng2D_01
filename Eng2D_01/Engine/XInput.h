@@ -4,11 +4,24 @@
 
 namespace X
 {
+	//////////////////////////////////////////////////////////////////////////fwd decl
+	class GameWindow;
+
+
+	//////////////////////////////////////////////////////////////////////////Input
 	class Input
 	{
-		bln	m_curKeyState[256];
-		bln	m_preKeyState[256];
-		int m_mouseX, m_mouseY;
+		friend class GameWindow;
+
+		XMSALIGN(16) struct Data
+		{
+			bln keys[256];
+			bln mouseButtons[3];
+			int mouseX,  mouseY;
+		};
+
+		Data m_curState;
+		Data m_preState;
 
 	public:
 
